@@ -22,7 +22,6 @@ let selectedColor = '#00ff00';
 let selectedShape = 'square';
 let selectedMode = 'normal'; 
 let players = {}, targetPlayers = {};
-// ADDED MISSING variables 'texts' and 'trails'
 let bullets = [], barriers = [], items = [], mines = [], particles = [], portals = [], aliens = [], texts = [], trails = [];
 let mapSize = 3000;
 let gameStarted = false;
@@ -52,6 +51,7 @@ window.selectShape = (shape) => {
 };
 
 window.selectMode = (mode) => {
+    if (mode === 'rescue') return; // LOCKED
     selectedMode = mode;
     document.querySelectorAll('.mode-btn').forEach(el => el.classList.remove('selected'));
     const btn = document.getElementById(`btn-${mode}`);
@@ -153,7 +153,6 @@ socket.on('leaderboardUpdate', (list) => {
     if(ui.leaderList) ui.leaderList.innerHTML = list.map(p => `<li>${p.name}: <span style="color:#ffd700">${p.coins}</span></li>`).join('');
 });
 socket.on('playerDied', (data) => createExplosion(data.x, data.y, data.color));
-// RESTORED: Floating damage text handler
 socket.on('dmgText', (data) => {
     if(texts) texts.push({x: data.x, y: data.y, txt: data.txt, color: data.color, life: 1.0});
 });
@@ -197,7 +196,7 @@ function drawCharacter(ctx, x, y, size, color, shape, angle) {
     if (shape === 'circle') ctx.arc(0, 0, size/2, 0, Math.PI*2);
     else if (shape === 'triangle') { ctx.moveTo(size/2, 0); ctx.lineTo(-size/2, size/2); ctx.lineTo(-size/2, -size/2); }
     else if (shape === 'pentagon') for(let i=0;i<5;i++) ctx.lineTo(size/2*Math.cos(i*2*Math.PI/5), size/2*Math.sin(i*2*Math.PI/5));
-    else ctx.rect(-size/2, -size/2, size, size); // Square/Tank
+    else ctx.rect(-size/2, -size/2, size, size); 
     
     ctx.closePath(); ctx.fill();
     ctx.fillStyle = 'rgba(255,255,255,0.3)'; ctx.fillRect(0, -size/4, size/2, size/2);
@@ -218,11 +217,11 @@ function drawMinimap(p) {
         let x = players[id].x*s, y = players[id].y*s;
         miniCtx.beginPath(); miniCtx.arc(x, y, (id===myId?3:2), 0, Math.PI*2); miniCtx.fill();
     }
+    
     miniCtx.strokeStyle = 'rgba(255,255,255,0.2)'; miniCtx.lineWidth=1;
     miniCtx.strokeRect((p.x*s) - (canvas.width/2*s), (p.y*s) - (canvas.height/2*s), canvas.width*s, canvas.height*s);
 }
 
-// --- MAIN LOOP ---
 function update() {
     if (!gameStarted || !myId || !players[myId]) return;
     let p = players[myId];
@@ -272,7 +271,6 @@ function update() {
         lastShot = Date.now();
     }
 
-    // RESTORED: Add trails without crashing
     if ((Math.abs(p.vx) + Math.abs(p.vy)) > 3) {
         trails.push({ x: p.x, y: p.y, size: p.size, color: p.color, shape: p.shape, life: 0.4 });
     }
@@ -287,14 +285,21 @@ function update() {
             cur.x = lerp(cur.x, targetPlayers[id].x, 0.2);
             cur.y = lerp(cur.y, targetPlayers[id].y, 0.2);
             cur.aimAngle = lerpAngle(cur.aimAngle || 0, targetPlayers[id].aimAngle || 0, 0.2);
-            
-            // Add trails for others
             if (targetPlayers[id].x !== cur.x || targetPlayers[id].y !== cur.y) {
                  trails.push({ x: cur.x, y: cur.y, size: cur.size, color: cur.color, shape: cur.shape, life: 0.4 });
             }
         }
     }
 }
+
+// Manually bind events
+window.addEventListener('DOMContentLoaded', () => {
+    const btnNormal = document.getElementById('btn-normal');
+    if(btnNormal) {
+        btnNormal.ontouchstart = (e) => { e.preventDefault(); selectMode('normal'); };
+        btnNormal.onclick = () => selectMode('normal');
+    }
+});
 
 function draw() {
     if (!gameStarted || !myId || !players[myId]) return;
@@ -304,7 +309,6 @@ function draw() {
 
     ctx.fillStyle = '#0a0a0a'; ctx.fillRect(0, 0, canvas.width, canvas.height);
     
-    // Grid
     ctx.strokeStyle = '#112222'; ctx.lineWidth = 1;
     let gs = 100, ox = -camX % gs, oy = -camY % gs;
     ctx.beginPath();
@@ -314,7 +318,6 @@ function draw() {
 
     ctx.strokeStyle = 'red'; ctx.lineWidth = 5; ctx.strokeRect(-camX, -camY, mapSize, mapSize);
 
-    // RESTORED: Draw Trails
     for(let i=trails.length-1; i>=0; i--) {
         let t = trails[i]; t.life -= 0.05;
         if(t.life <= 0) { trails.splice(i,1); continue; }
@@ -358,7 +361,6 @@ function draw() {
         ctx.fillStyle='#0f0'; ctx.fillRect(pl.x-camX, pl.y-camY-10, pl.size*(pl.health/pl.maxHealth), 4);
     }
 
-    // RESTORED: Draw Floating Damage Text
     for(let i=texts.length-1; i>=0; i--) {
         let t = texts[i]; t.y-=0.5; t.life-=0.02;
         if(t.life<=0) texts.splice(i,1);
