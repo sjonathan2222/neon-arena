@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
+    <title>Neon Arena</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="rotate-warning"><h1>⚠️</h1><h2>PLEASE ROTATE DEVICE</h2><p>Landscape Mode Required</p></div>
+    <div id="boss-warning" style="display: none;"><h1>⚠️ WARNING ⚠️</h1><p>CLASS-5 ENTITY DETECTED</p></div>
+
+    <div id="login-screen">
+        <div class="login-box">
+            <h1>NEON ARENA</h1>
+            <input type="text" id="username" placeholder="Enter Codename" maxlength="15">
+            <div class="selection-container">
+                <div class="color-picker"><p>COLOR</p><div class="colors">
+                    <div class="c-opt" style="background:#ff0000" onclick="selectColor('#ff0000')"></div>
+                    <div class="c-opt" style="background:#00ff00" onclick="selectColor('#00ff00')"></div>
+                    <div class="c-opt" style="background:#00ffff" onclick="selectColor('#00ffff')"></div>
+                    <div class="c-opt" style="background:#ff00ff" onclick="selectColor('#ff00ff')"></div>
+                </div></div>
+                <div class="shape-picker"><p>CLASS</p><div class="shapes">
+                    <div class="s-opt selected" onclick="selectShape('square')">■</div>
+                    <div class="s-opt" onclick="selectShape('circle')">●</div>
+                    <div class="s-opt" onclick="selectShape('triangle')">▲</div>
+                    <div class="s-opt" onclick="selectShape('pentagon')">⬠</div>
+                </div></div>
+            </div>
+            <div class="mode-picker"><p>MODE</p><div class="modes">
+                <button id="btn-normal" class="mode-btn selected" onclick="selectMode('normal')">⚔️ PVP</button>
+                <button id="btn-rescue" class="mode-btn" onclick="selectMode('rescue')">👽 CO-OP</button>
+            </div></div>
+            <button class="join-btn" onclick="joinGame()">DEPLOY</button>
+        </div>
+    </div>
+
+    <div id="hud" style="display:none;">
+        <div id="stats">
+            <div class="stat-box">❤️ <span id="health-display">100</span></div>
+            <div class="stat-box" style="color:#ffd700">💰 <span id="coin-display">0</span></div>
+            <div class="stat-box" style="color:#ff4444">💣 <span id="mine-display">0</span></div>
+        </div>
+        <button id="shop-btn" onclick="toggleShop()">🛒 STORE</button>
+    </div>
+
+    <canvas id="minimap" width="120" height="120"></canvas>
+
+    <div id="leaderboard" style="display:none;">
+        <ul id="leaderboard-list"></ul>
+    </div>
+
+    <div id="chat-container" style="display:none;">
+        <ul id="chat-list"></ul>
+        <input type="text" id="chat-input" placeholder="Message...">
+    </div>
+
+    <div id="shop-modal" style="display: none;">
+        <h3>UPGRADES</h3>
+        <button onclick="buy('damage')">⚔️ DMG (+5) <span>50$</span></button>
+        <button onclick="buy('health')">❤️ HP (+20) <span>50$</span></button>
+        <button onclick="buy('speed')">⚡ SPEED <span>100$</span></button>
+        <button onclick="buy('mine')">💣 MINE <span>30$</span></button>
+        <button onclick="toggleShop()" class="close-btn">CLOSE</button>
+    </div>
+
+    <canvas id="gameCanvas"></canvas>
+
+    <div id="mobile-controls">
+        <div id="zone-left"></div>
+        <div id="zone-right"></div>
+        <button id="btn-mine" onclick="placeMine()">💣</button>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/nipplejs/0.10.1/nipplejs.min.js"></script>
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="game.js"></script>
+</body>
+</html>
